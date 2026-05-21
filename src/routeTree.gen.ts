@@ -9,38 +9,103 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TabelaTaxasRouteImport } from './routes/tabela-taxas'
+import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AtivosNovoRouteImport } from './routes/ativos.novo'
+import { Route as AtivosIdRouteImport } from './routes/ativos.$id'
 
+const TabelaTaxasRoute = TabelaTaxasRouteImport.update({
+  id: '/tabela-taxas',
+  path: '/tabela-taxas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventarioRoute = InventarioRouteImport.update({
+  id: '/inventario',
+  path: '/inventario',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AtivosNovoRoute = AtivosNovoRouteImport.update({
+  id: '/ativos/novo',
+  path: '/ativos/novo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtivosIdRoute = AtivosIdRouteImport.update({
+  id: '/ativos/$id',
+  path: '/ativos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/inventario': typeof InventarioRoute
+  '/tabela-taxas': typeof TabelaTaxasRoute
+  '/ativos/$id': typeof AtivosIdRoute
+  '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/inventario': typeof InventarioRoute
+  '/tabela-taxas': typeof TabelaTaxasRoute
+  '/ativos/$id': typeof AtivosIdRoute
+  '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/inventario': typeof InventarioRoute
+  '/tabela-taxas': typeof TabelaTaxasRoute
+  '/ativos/$id': typeof AtivosIdRoute
+  '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/inventario'
+    | '/tabela-taxas'
+    | '/ativos/$id'
+    | '/ativos/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/inventario' | '/tabela-taxas' | '/ativos/$id' | '/ativos/novo'
+  id:
+    | '__root__'
+    | '/'
+    | '/inventario'
+    | '/tabela-taxas'
+    | '/ativos/$id'
+    | '/ativos/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  InventarioRoute: typeof InventarioRoute
+  TabelaTaxasRoute: typeof TabelaTaxasRoute
+  AtivosIdRoute: typeof AtivosIdRoute
+  AtivosNovoRoute: typeof AtivosNovoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tabela-taxas': {
+      id: '/tabela-taxas'
+      path: '/tabela-taxas'
+      fullPath: '/tabela-taxas'
+      preLoaderRoute: typeof TabelaTaxasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventario': {
+      id: '/inventario'
+      path: '/inventario'
+      fullPath: '/inventario'
+      preLoaderRoute: typeof InventarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +113,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ativos/novo': {
+      id: '/ativos/novo'
+      path: '/ativos/novo'
+      fullPath: '/ativos/novo'
+      preLoaderRoute: typeof AtivosNovoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ativos/$id': {
+      id: '/ativos/$id'
+      path: '/ativos/$id'
+      fullPath: '/ativos/$id'
+      preLoaderRoute: typeof AtivosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  InventarioRoute: InventarioRoute,
+  TabelaTaxasRoute: TabelaTaxasRoute,
+  AtivosIdRoute: AtivosIdRoute,
+  AtivosNovoRoute: AtivosNovoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
