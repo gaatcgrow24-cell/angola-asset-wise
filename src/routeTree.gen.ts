@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AtivosNovoRouteImport } from './routes/ativos.novo'
 
 const InventarioRoute = InventarioRouteImport.update({
   id: '/inventario',
@@ -22,31 +23,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AtivosNovoRoute = AtivosNovoRouteImport.update({
+  id: '/ativos/novo',
+  path: '/ativos/novo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/inventario': typeof InventarioRoute
+  '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/inventario': typeof InventarioRoute
+  '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/inventario': typeof InventarioRoute
+  '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/inventario'
+  fullPaths: '/' | '/inventario' | '/ativos/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inventario'
-  id: '__root__' | '/' | '/inventario'
+  to: '/' | '/inventario' | '/ativos/novo'
+  id: '__root__' | '/' | '/inventario' | '/ativos/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InventarioRoute: typeof InventarioRoute
+  AtivosNovoRoute: typeof AtivosNovoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ativos/novo': {
+      id: '/ativos/novo'
+      path: '/ativos/novo'
+      fullPath: '/ativos/novo'
+      preLoaderRoute: typeof AtivosNovoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InventarioRoute: InventarioRoute,
+  AtivosNovoRoute: AtivosNovoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
