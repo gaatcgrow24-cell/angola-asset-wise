@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AtivosNovoRouteImport } from './routes/ativos.novo'
+import { Route as AtivosIdRouteImport } from './routes/ativos.$id'
 
 const InventarioRoute = InventarioRouteImport.update({
   id: '/inventario',
@@ -28,34 +29,43 @@ const AtivosNovoRoute = AtivosNovoRouteImport.update({
   path: '/ativos/novo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AtivosIdRoute = AtivosIdRouteImport.update({
+  id: '/ativos/$id',
+  path: '/ativos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/inventario': typeof InventarioRoute
+  '/ativos/$id': typeof AtivosIdRoute
   '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/inventario': typeof InventarioRoute
+  '/ativos/$id': typeof AtivosIdRoute
   '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/inventario': typeof InventarioRoute
+  '/ativos/$id': typeof AtivosIdRoute
   '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/inventario' | '/ativos/novo'
+  fullPaths: '/' | '/inventario' | '/ativos/$id' | '/ativos/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inventario' | '/ativos/novo'
-  id: '__root__' | '/' | '/inventario' | '/ativos/novo'
+  to: '/' | '/inventario' | '/ativos/$id' | '/ativos/novo'
+  id: '__root__' | '/' | '/inventario' | '/ativos/$id' | '/ativos/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InventarioRoute: typeof InventarioRoute
+  AtivosIdRoute: typeof AtivosIdRoute
   AtivosNovoRoute: typeof AtivosNovoRoute
 }
 
@@ -82,12 +92,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AtivosNovoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ativos/$id': {
+      id: '/ativos/$id'
+      path: '/ativos/$id'
+      fullPath: '/ativos/$id'
+      preLoaderRoute: typeof AtivosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InventarioRoute: InventarioRoute,
+  AtivosIdRoute: AtivosIdRoute,
   AtivosNovoRoute: AtivosNovoRoute,
 }
 export const routeTree = rootRouteImport
