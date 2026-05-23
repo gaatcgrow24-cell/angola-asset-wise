@@ -7,27 +7,27 @@ export type AssetStatus = "ativo" | "abatido" | "alienado";
 export interface DepreciationCategory {
   id: string;
   nature: AssetNature;
+  group: string;            // ex.: "G — Comércio, serviços gerais e elementos comuns"
   section: string;          // ex.: "G 3.1"
   description: string;
   ratePct: number;          // taxa anual %
   usefulLifeYears: number;  // vida útil em anos
-  pgcAccount: string;       // conta PGC Classe 1
+  pgcAccount: string;       // conta PGC Classe 4
 }
 
 export interface Asset {
-  id: string;               // UUID interno
-  code: string;             // Código Único (Imobilizado ID)
+  id: string;
+  code: string;
   description: string;
   nature: AssetNature;
   categoryId: string;
-  caeSection: string;       // Setor Atividade Económica (CAE)
-  acquisitionDate: string;  // ISO YYYY-MM-DD
-  inServiceDate: string;    // Data de entrada em funcionamento
-  acquisitionValue: number; // Kz
-  residualValue: number;    // Kz
-  impairmentLoss: number;   // Perdas por imparidade acumuladas
+  caeSection: string;
+  acquisitionDate: string;
+  inServiceDate: string;
+  acquisitionValue: number;
+  residualValue: number;
+  impairmentLoss: number;
   status: AssetStatus;
-  // Para abate/alienação
   disposalDate?: string;
   disposalValue?: number;
   disposalNote?: string;
