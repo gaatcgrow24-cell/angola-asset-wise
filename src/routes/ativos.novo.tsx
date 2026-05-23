@@ -155,17 +155,24 @@ function NovoAtivo() {
                   <Label>Categoria — Decreto 207/15</Label>
                   <Select value={categoryId} onValueChange={setCategoryId}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>
-                          {nature === "corporeo" ? "Corpóreos" : "Incorpóreos"}
-                        </SelectLabel>
-                        {filteredCategories.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.section} — {c.description} ({c.ratePct}%)
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
+                    <SelectContent className="max-h-[420px]">
+                      {Array.from(
+                        filteredCategories.reduce((m, c) => {
+                          const arr = m.get(c.group) ?? [];
+                          arr.push(c);
+                          m.set(c.group, arr);
+                          return m;
+                        }, new Map<string, typeof filteredCategories>()),
+                      ).map(([group, rows]) => (
+                        <SelectGroup key={group}>
+                          <SelectLabel className="text-xs">{group}</SelectLabel>
+                          {rows.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.section} — {c.description} ({c.ratePct}%)
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

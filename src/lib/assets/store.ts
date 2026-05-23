@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Asset } from "./types";
 import { DEPRECIATION_CATEGORIES } from "./depreciation-table";
 
-const STORAGE_KEY = "imob.assets.v1";
+const STORAGE_KEY = "imob.assets.v2";
 
 function uuid() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -52,9 +52,9 @@ function seed(): Asset[] {
     {
       id: uuid(),
       code: "IMB-0003",
-      description: "Licença ERP — Software de Gestão",
+      description: "Licença ERP — Software de Gestão (I&D / Propriedade Industrial)",
       nature: "incorporeo",
-      categoryId: "n-software",
+      categoryId: "n-1",
       caeSection: "K",
       acquisitionDate: mk(4),
       inServiceDate: mk(4),
