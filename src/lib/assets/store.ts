@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Asset } from "./types";
 import { DEPRECIATION_CATEGORIES } from "./depreciation-table";
 
-const STORAGE_KEY = "imob.assets.v1";
+const STORAGE_KEY = "imob.assets.v2";
 
 function uuid() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
