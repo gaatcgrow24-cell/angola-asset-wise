@@ -267,6 +267,52 @@ function AssetDetail() {
             </Table>
           </div>
         </section>
+
+        {assetTransfers.length > 0 && (
+          <section className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="p-6 pb-3 flex items-center justify-between">
+              <div>
+                <h2 className="font-display font-semibold">Histórico de Transferências</h2>
+                <p className="text-xs text-muted-foreground">Rastreabilidade das movimentações entre filiais</p>
+              </div>
+              <Button asChild size="sm" variant="outline"><Link to="/transferencias">Nova transferência</Link></Button>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Origem → Destino</TableHead>
+                  <TableHead>Motivo</TableHead>
+                  <TableHead>Enviado por</TableHead>
+                  <TableHead>Recebido por</TableHead>
+                  <TableHead>Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {assetTransfers.map((t) => {
+                  const from = branches.find((b) => b.id === t.fromBranchId);
+                  const to = branches.find((b) => b.id === t.toBranchId);
+                  return (
+                    <TableRow key={t.id}>
+                      <TableCell className="text-xs">
+                        <span className="font-medium">{from?.code}</span>
+                        <ArrowRight className="w-3 h-3 inline mx-1 text-muted-foreground" />
+                        <span className="font-medium">{to?.code}</span>
+                      </TableCell>
+                      <TableCell className="text-xs max-w-[260px]">{t.reason}</TableCell>
+                      <TableCell className="text-xs">{t.sentBy} · {fmtDate(t.sentDate)}</TableCell>
+                      <TableCell className="text-xs">{t.receivedBy ? `${t.receivedBy} · ${fmtDate(t.receivedDate)}` : "—"}</TableCell>
+                      <TableCell>
+                        {t.status === "em_transito" && <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Em Trânsito</Badge>}
+                        {t.status === "recebido" && <Badge variant="outline" className="bg-success/15 text-success border-success/20">Recebido</Badge>}
+                        {t.status === "cancelado" && <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">Cancelado</Badge>}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </section>
+        )}
       </div>
     </AppShell>
   );
