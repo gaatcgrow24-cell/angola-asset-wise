@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Asset } from "./types";
 import { DEPRECIATION_CATEGORIES } from "./depreciation-table";
 
-const STORAGE_KEY = "imob.assets.v2";
+const STORAGE_KEY = "imob.assets.v3";
 
 function uuid() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -26,6 +26,9 @@ function seed(): Asset[] {
       nature: "corporeo",
       categoryId: "g-3-1",
       caeSection: "K",
+      branchId: "br-sede",
+      departmentId: "dep-br-sede-ti",
+      locationId: "loc-dep-br-sede-ti-1",
       acquisitionDate: mk(14),
       inServiceDate: mk(14),
       acquisitionValue: 850000,
@@ -41,6 +44,8 @@ function seed(): Asset[] {
       nature: "corporeo",
       categoryId: "g-4-1-2",
       caeSection: "I",
+      branchId: "br-benguela",
+      departmentId: "dep-br-benguela-ops",
       acquisitionDate: mk(8),
       inServiceDate: mk(7),
       acquisitionValue: 18500000,
@@ -52,10 +57,12 @@ function seed(): Asset[] {
     {
       id: uuid(),
       code: "IMB-0003",
-      description: "Licença ERP — Software de Gestão (I&D / Propriedade Industrial)",
+      description: "Licença ERP — Software de Gestão",
       nature: "incorporeo",
       categoryId: "n-1",
       caeSection: "K",
+      branchId: "br-sede",
+      departmentId: "dep-br-sede-ti",
       acquisitionDate: mk(4),
       inServiceDate: mk(4),
       acquisitionValue: 3200000,
@@ -71,10 +78,46 @@ function seed(): Asset[] {
       nature: "corporeo",
       categoryId: "g-1-3",
       caeSection: "K",
+      branchId: "br-sede",
+      departmentId: "dep-br-sede-adm",
       acquisitionDate: mk(30),
       inServiceDate: mk(28),
       acquisitionValue: 245000000,
       residualValue: 25000000,
+      impairmentLoss: 0,
+      status: "ativo",
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: uuid(),
+      code: "IMB-0005",
+      description: "Gerador Industrial 250kVA",
+      nature: "corporeo",
+      categoryId: "g-2-1",
+      caeSection: "E",
+      branchId: "br-huambo",
+      departmentId: "dep-br-huambo-ops",
+      acquisitionDate: mk(12),
+      inServiceDate: mk(11),
+      acquisitionValue: 32500000,
+      residualValue: 3000000,
+      impairmentLoss: 0,
+      status: "ativo",
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: uuid(),
+      code: "IMB-0006",
+      description: "Mobiliário de Escritório — Lote",
+      nature: "corporeo",
+      categoryId: "g-3-2",
+      caeSection: "K",
+      branchId: "br-lobito",
+      departmentId: "dep-br-lobito-adm",
+      acquisitionDate: mk(6),
+      inServiceDate: mk(6),
+      acquisitionValue: 2750000,
+      residualValue: 0,
       impairmentLoss: 0,
       status: "ativo",
       createdAt: new Date().toISOString(),
@@ -177,7 +220,60 @@ export function useAssets() {
     [],
   );
 
-  return { assets, ready, create, update, remove, dispose, categories: DEPRECIATION_CATEGORIES };
+  // Marca activo "Em Trânsito" para uma filial destino
+  const startTransit = useCallback((id: string, toBranchId: string) => {
+    const next = load().map((a) =>
+      a.id === id
+        ? { ...a, status: "em_transito" as const, inTransitToBranchId: toBranchId }
+        : a,
+    );
+    save(next);
+    emit();
+  }, []);
+
+  // Conclui transferência: muda branchId e limpa trânsito
+  const completeTransit = useCallback(
+    (id: string, toBranchId: string, toDepartmentId?: string) => {
+      const next = load().map((a) =>
+        a.id === id
+          ? {
+              ...a,
+              branchId: toBranchId,
+              departmentId: toDepartmentId,
+              locationId: undefined,
+              status: "ativo" as const,
+              inTransitToBranchId: undefined,
+            }
+          : a,
+      );
+      save(next);
+      emit();
+    },
+    [],
+  );
+
+  const cancelTransit = useCallback((id: string) => {
+    const next = load().map((a) =>
+      a.id === id
+        ? { ...a, status: "ativo" as const, inTransitToBranchId: undefined }
+        : a,
+    );
+    save(next);
+    emit();
+  }, []);
+
+  return {
+    assets,
+    ready,
+    create,
+    update,
+    remove,
+    dispose,
+    startTransit,
+    completeTransit,
+    cancelTransit,
+    categories: DEPRECIATION_CATEGORIES,
+  };
 }
 
 export function nextCode(assets: Asset[]): string {

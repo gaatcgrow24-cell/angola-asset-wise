@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useAssets } from "@/lib/assets/store";
+import { useOrg } from "@/lib/org/store";
 import { getCategory, CAE_SECTIONS } from "@/lib/assets/depreciation-table";
 import {
   accumulatedUntil,
@@ -32,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, ArrowRight, Building2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/ativos/$id")({
@@ -43,8 +44,14 @@ export const Route = createFileRoute("/ativos/$id")({
 function AssetDetail() {
   const { id } = Route.useParams();
   const { assets, ready, dispose, remove } = useAssets();
+  const { branches, departments, locations, transfers } = useOrg();
   const navigate = useNavigate();
   const asset = assets.find((a) => a.id === id);
+  const assetTransfers = transfers.filter((t) => t.assetId === id);
+  const branch = asset ? branches.find((b) => b.id === asset.branchId) : undefined;
+  const department = asset?.departmentId ? departments.find((d) => d.id === asset.departmentId) : undefined;
+  const location = asset?.locationId ? locations.find((l) => l.id === asset.locationId) : undefined;
+  const inTransitTo = asset?.inTransitToBranchId ? branches.find((b) => b.id === asset.inTransitToBranchId) : undefined;
 
   const today = new Date().toISOString().slice(0, 10);
   const [open, setOpen] = useState(false);
@@ -117,12 +124,23 @@ function AssetDetail() {
                   {asset.status === "alienado" ? "Alienado" : "Abatido"}
                 </Badge>
               )}
+              {asset.status === "em_transito" && inTransitTo && (
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                  Em Trânsito → {inTransitTo.name}
+                </Badge>
+              )}
             </div>
             <h1 className="text-3xl font-display font-semibold mt-2">
               {asset.description}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">
               {cat.section} — {cat.description} · {cae?.label ?? asset.caeSection}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <Building2 className="w-3 h-3" />
+              {branch?.name ?? "—"}
+              {department && <> · {department.name}</>}
+              {location && <> · {location.name}</>}
             </p>
           </div>
           <div className="flex gap-2">
@@ -249,6 +267,52 @@ function AssetDetail() {
             </Table>
           </div>
         </section>
+
+        {assetTransfers.length > 0 && (
+          <section className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="p-6 pb-3 flex items-center justify-between">
+              <div>
+                <h2 className="font-display font-semibold">Histórico de Transferências</h2>
+                <p className="text-xs text-muted-foreground">Rastreabilidade das movimentações entre filiais</p>
+              </div>
+              <Button asChild size="sm" variant="outline"><Link to="/transferencias">Nova transferência</Link></Button>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Origem → Destino</TableHead>
+                  <TableHead>Motivo</TableHead>
+                  <TableHead>Enviado por</TableHead>
+                  <TableHead>Recebido por</TableHead>
+                  <TableHead>Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {assetTransfers.map((t) => {
+                  const from = branches.find((b) => b.id === t.fromBranchId);
+                  const to = branches.find((b) => b.id === t.toBranchId);
+                  return (
+                    <TableRow key={t.id}>
+                      <TableCell className="text-xs">
+                        <span className="font-medium">{from?.code}</span>
+                        <ArrowRight className="w-3 h-3 inline mx-1 text-muted-foreground" />
+                        <span className="font-medium">{to?.code}</span>
+                      </TableCell>
+                      <TableCell className="text-xs max-w-[260px]">{t.reason}</TableCell>
+                      <TableCell className="text-xs">{t.sentBy} · {fmtDate(t.sentDate)}</TableCell>
+                      <TableCell className="text-xs">{t.receivedBy ? `${t.receivedBy} · ${fmtDate(t.receivedDate)}` : "—"}</TableCell>
+                      <TableCell>
+                        {t.status === "em_transito" && <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Em Trânsito</Badge>}
+                        {t.status === "recebido" && <Badge variant="outline" className="bg-success/15 text-success border-success/20">Recebido</Badge>}
+                        {t.status === "cancelado" && <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">Cancelado</Badge>}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </section>
+        )}
       </div>
     </AppShell>
   );

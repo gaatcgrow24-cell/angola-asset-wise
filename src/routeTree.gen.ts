@@ -9,12 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TransferenciasRouteImport } from './routes/transferencias'
 import { Route as TabelaTaxasRouteImport } from './routes/tabela-taxas'
 import { Route as InventarioRouteImport } from './routes/inventario'
+import { Route as FiliaisRouteImport } from './routes/filiais'
+import { Route as ClassesRouteImport } from './routes/classes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AtivosNovoRouteImport } from './routes/ativos.novo'
 import { Route as AtivosIdRouteImport } from './routes/ativos.$id'
 
+const TransferenciasRoute = TransferenciasRouteImport.update({
+  id: '/transferencias',
+  path: '/transferencias',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TabelaTaxasRoute = TabelaTaxasRouteImport.update({
   id: '/tabela-taxas',
   path: '/tabela-taxas',
@@ -23,6 +31,16 @@ const TabelaTaxasRoute = TabelaTaxasRouteImport.update({
 const InventarioRoute = InventarioRouteImport.update({
   id: '/inventario',
   path: '/inventario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FiliaisRoute = FiliaisRouteImport.update({
+  id: '/filiais',
+  path: '/filiais',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClassesRoute = ClassesRouteImport.update({
+  id: '/classes',
+  path: '/classes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,23 +61,32 @@ const AtivosIdRoute = AtivosIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/classes': typeof ClassesRoute
+  '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
+  '/transferencias': typeof TransferenciasRoute
   '/ativos/$id': typeof AtivosIdRoute
   '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/classes': typeof ClassesRoute
+  '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
+  '/transferencias': typeof TransferenciasRoute
   '/ativos/$id': typeof AtivosIdRoute
   '/ativos/novo': typeof AtivosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/classes': typeof ClassesRoute
+  '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
+  '/transferencias': typeof TransferenciasRoute
   '/ativos/$id': typeof AtivosIdRoute
   '/ativos/novo': typeof AtivosNovoRoute
 }
@@ -67,31 +94,55 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/classes'
+    | '/filiais'
     | '/inventario'
     | '/tabela-taxas'
+    | '/transferencias'
     | '/ativos/$id'
     | '/ativos/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inventario' | '/tabela-taxas' | '/ativos/$id' | '/ativos/novo'
+  to:
+    | '/'
+    | '/classes'
+    | '/filiais'
+    | '/inventario'
+    | '/tabela-taxas'
+    | '/transferencias'
+    | '/ativos/$id'
+    | '/ativos/novo'
   id:
     | '__root__'
     | '/'
+    | '/classes'
+    | '/filiais'
     | '/inventario'
     | '/tabela-taxas'
+    | '/transferencias'
     | '/ativos/$id'
     | '/ativos/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClassesRoute: typeof ClassesRoute
+  FiliaisRoute: typeof FiliaisRoute
   InventarioRoute: typeof InventarioRoute
   TabelaTaxasRoute: typeof TabelaTaxasRoute
+  TransferenciasRoute: typeof TransferenciasRoute
   AtivosIdRoute: typeof AtivosIdRoute
   AtivosNovoRoute: typeof AtivosNovoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/transferencias': {
+      id: '/transferencias'
+      path: '/transferencias'
+      fullPath: '/transferencias'
+      preLoaderRoute: typeof TransferenciasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tabela-taxas': {
       id: '/tabela-taxas'
       path: '/tabela-taxas'
@@ -104,6 +155,20 @@ declare module '@tanstack/react-router' {
       path: '/inventario'
       fullPath: '/inventario'
       preLoaderRoute: typeof InventarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/filiais': {
+      id: '/filiais'
+      path: '/filiais'
+      fullPath: '/filiais'
+      preLoaderRoute: typeof FiliaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/classes': {
+      id: '/classes'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof ClassesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -132,8 +197,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClassesRoute: ClassesRoute,
+  FiliaisRoute: FiliaisRoute,
   InventarioRoute: InventarioRoute,
   TabelaTaxasRoute: TabelaTaxasRoute,
+  TransferenciasRoute: TransferenciasRoute,
   AtivosIdRoute: AtivosIdRoute,
   AtivosNovoRoute: AtivosNovoRoute,
 }

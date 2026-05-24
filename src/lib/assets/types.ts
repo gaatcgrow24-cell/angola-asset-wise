@@ -2,17 +2,21 @@
 // Conforme PGC Angolano e Decreto Presidencial n.º 207/15
 
 export type AssetNature = "corporeo" | "incorporeo";
-export type AssetStatus = "ativo" | "abatido" | "alienado";
+export type AssetStatus =
+  | "ativo"
+  | "em_transito"
+  | "abatido"
+  | "alienado";
 
 export interface DepreciationCategory {
   id: string;
   nature: AssetNature;
-  group: string;            // ex.: "G — Comércio, serviços gerais e elementos comuns"
-  section: string;          // ex.: "G 3.1"
+  group: string;
+  section: string;
   description: string;
-  ratePct: number;          // taxa anual %
-  usefulLifeYears: number;  // vida útil em anos
-  pgcAccount: string;       // conta PGC Classe 4
+  ratePct: number;
+  usefulLifeYears: number;
+  pgcAccount: string;
 }
 
 export interface Asset {
@@ -22,6 +26,12 @@ export interface Asset {
   nature: AssetNature;
   categoryId: string;
   caeSection: string;
+  // Hierarquia organizacional
+  branchId: string;
+  departmentId?: string;
+  locationId?: string;
+  inTransitToBranchId?: string;
+  // Fiscal
   acquisitionDate: string;
   inServiceDate: string;
   acquisitionValue: number;
