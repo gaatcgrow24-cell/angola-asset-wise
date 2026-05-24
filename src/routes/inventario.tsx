@@ -188,50 +188,46 @@ function Inventario() {
               {ready && rows.length === 0 && (
                 <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-12">Nenhum ativo encontrado.</TableCell></TableRow>
               )}
-              {grouped.map(([L, items]) => (
-                <FragmentRows key={`grp-${L}`} letter={L} items={items} branches={branches} />
-              ))}
-                <>
-                  <TableRow key={`hdr-${L}`} className="bg-muted/50 hover:bg-muted/50">
-                    <TableCell colSpan={8} className="py-2">
-                      <span className="font-display font-bold text-primary">{L}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">{items.length} ativo(s)</span>
-                    </TableCell>
-                  </TableRow>
-                  {items.map((a) => {
-                    const cat = getCategory(a.categoryId);
-                    const { accumulated, netBookValue } = cat
-                      ? accumulatedUntil(a, cat)
-                      : { accumulated: 0, netBookValue: a.acquisitionValue };
-                    const br = branches.find((b) => b.id === a.branchId);
-                    return (
-                      <TableRow key={a.id} className="cursor-pointer hover:bg-muted/40">
-                        <TableCell className="font-mono text-xs">
-                          <Link to="/ativos/$id" params={{ id: a.id }} className="hover:text-primary">{a.code}</Link>
-                        </TableCell>
-                        <TableCell>
-                          <Link to="/ativos/$id" params={{ id: a.id }} className="hover:text-primary">
-                            <p className="font-medium">{a.description}</p>
-                            <p className="text-xs text-muted-foreground">{fmtDate(a.inServiceDate)}</p>
-                          </Link>
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          <p className="font-medium">{br?.name ?? "—"}</p>
-                          <p className="text-muted-foreground">{br?.province}</p>
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          <p>{cat?.description ?? "—"}</p>
-                          <p className="text-muted-foreground">{cat ? `${cat.ratePct}% · ${cat.usefulLifeYears}a` : ""}</p>
-                        </TableCell>
-                        <TableCell className="text-right tabular">{fmtKz(a.acquisitionValue)}</TableCell>
-                        <TableCell className="text-right tabular text-warning">{fmtKz(accumulated)}</TableCell>
-                        <TableCell className="text-right tabular font-semibold">{fmtKz(netBookValue)}</TableCell>
-                        <TableCell>{statusBadge(a.status)}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </>
-              ))}
+              {grouped.flatMap(([L, items]) => [
+                <TableRow key={`hdr-${L}`} className="bg-muted/50 hover:bg-muted/50">
+                  <TableCell colSpan={8} className="py-2">
+                    <span className="font-display font-bold text-primary">{L}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">{items.length} ativo(s)</span>
+                  </TableCell>
+                </TableRow>,
+                ...items.map((a) => {
+                  const cat = getCategory(a.categoryId);
+                  const { accumulated, netBookValue } = cat
+                    ? accumulatedUntil(a, cat)
+                    : { accumulated: 0, netBookValue: a.acquisitionValue };
+                  const br = branches.find((b) => b.id === a.branchId);
+                  return (
+                    <TableRow key={a.id} className="cursor-pointer hover:bg-muted/40">
+                      <TableCell className="font-mono text-xs">
+                        <Link to="/ativos/$id" params={{ id: a.id }} className="hover:text-primary">{a.code}</Link>
+                      </TableCell>
+                      <TableCell>
+                        <Link to="/ativos/$id" params={{ id: a.id }} className="hover:text-primary">
+                          <p className="font-medium">{a.description}</p>
+                          <p className="text-xs text-muted-foreground">{fmtDate(a.inServiceDate)}</p>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <p className="font-medium">{br?.name ?? "—"}</p>
+                        <p className="text-muted-foreground">{br?.province}</p>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <p>{cat?.description ?? "—"}</p>
+                        <p className="text-muted-foreground">{cat ? `${cat.ratePct}% · ${cat.usefulLifeYears}a` : ""}</p>
+                      </TableCell>
+                      <TableCell className="text-right tabular">{fmtKz(a.acquisitionValue)}</TableCell>
+                      <TableCell className="text-right tabular text-warning">{fmtKz(accumulated)}</TableCell>
+                      <TableCell className="text-right tabular font-semibold">{fmtKz(netBookValue)}</TableCell>
+                      <TableCell>{statusBadge(a.status)}</TableCell>
+                    </TableRow>
+                  );
+                }),
+              ])}
             </TableBody>
           </Table>
         </div>
