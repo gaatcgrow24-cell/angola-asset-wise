@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useAssets } from "@/lib/assets/store";
+import { useOrg } from "@/lib/org/store";
 import { getCategory, CAE_SECTIONS } from "@/lib/assets/depreciation-table";
 import {
   accumulatedUntil,
@@ -32,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, ArrowRight, Building2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/ativos/$id")({
@@ -43,8 +44,14 @@ export const Route = createFileRoute("/ativos/$id")({
 function AssetDetail() {
   const { id } = Route.useParams();
   const { assets, ready, dispose, remove } = useAssets();
+  const { branches, departments, locations, transfers } = useOrg();
   const navigate = useNavigate();
   const asset = assets.find((a) => a.id === id);
+  const assetTransfers = transfers.filter((t) => t.assetId === id);
+  const branch = asset ? branches.find((b) => b.id === asset.branchId) : undefined;
+  const department = asset?.departmentId ? departments.find((d) => d.id === asset.departmentId) : undefined;
+  const location = asset?.locationId ? locations.find((l) => l.id === asset.locationId) : undefined;
+  const inTransitTo = asset?.inTransitToBranchId ? branches.find((b) => b.id === asset.inTransitToBranchId) : undefined;
 
   const today = new Date().toISOString().slice(0, 10);
   const [open, setOpen] = useState(false);
