@@ -124,12 +124,23 @@ function AssetDetail() {
                   {asset.status === "alienado" ? "Alienado" : "Abatido"}
                 </Badge>
               )}
+              {asset.status === "em_transito" && inTransitTo && (
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                  Em Trânsito → {inTransitTo.name}
+                </Badge>
+              )}
             </div>
             <h1 className="text-3xl font-display font-semibold mt-2">
               {asset.description}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">
               {cat.section} — {cat.description} · {cae?.label ?? asset.caeSection}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <Building2 className="w-3 h-3" />
+              {branch?.name ?? "—"}
+              {department && <> · {department.name}</>}
+              {location && <> · {location.name}</>}
             </p>
           </div>
           <div className="flex gap-2">
