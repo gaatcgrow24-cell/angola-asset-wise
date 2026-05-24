@@ -189,6 +189,8 @@ function Inventario() {
                 <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-12">Nenhum ativo encontrado.</TableCell></TableRow>
               )}
               {grouped.map(([L, items]) => (
+                <FragmentRows key={`grp-${L}`} letter={L} items={items} branches={branches} />
+              ))}
                 <>
                   <TableRow key={`hdr-${L}`} className="bg-muted/50 hover:bg-muted/50">
                     <TableCell colSpan={8} className="py-2">
