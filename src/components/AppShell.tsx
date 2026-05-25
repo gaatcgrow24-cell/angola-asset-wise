@@ -8,6 +8,7 @@ import {
   Network,
   ArrowLeftRight,
   ListOrdered,
+  ScanLine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrg, useCurrentBranch } from "@/lib/org/store";
@@ -24,6 +25,7 @@ import {
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/inventario", label: "Inventário", icon: Boxes },
+  { to: "/scan", label: "Escanear Etiqueta", icon: ScanLine },
   { to: "/ativos/novo", label: "Novo Ativo", icon: PlusCircle },
   { to: "/transferencias", label: "Transferências", icon: ArrowLeftRight },
   { to: "/filiais", label: "Filiais", icon: Network },
