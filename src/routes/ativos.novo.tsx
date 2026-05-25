@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { AssetNature } from "@/lib/assets/types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useCustody } from "@/lib/custody/store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/ativos/novo")({
@@ -35,6 +37,7 @@ function NovoAtivo() {
   const { assets, create } = useAssets();
   const { branches, departments, locations } = useOrg();
   const { branchId: ctxBranch } = useCurrentBranch();
+  const { assign } = useCustody();
   const navigate = useNavigate();
 
   const today = new Date().toISOString().slice(0, 10);
@@ -51,6 +54,11 @@ function NovoAtivo() {
   const [acquisitionValue, setVal] = useState("0");
   const [residualValue, setRes] = useState("0");
   const [notes, setNotes] = useState("");
+  // Responsável
+  const [custName, setCustName] = useState("");
+  const [custTaxId, setCustTaxId] = useState("");
+  const [custDate, setCustDate] = useState(today);
+  const [custSigned, setCustSigned] = useState(false);
 
   useEffect(() => {
     if (!branchId && branches.length > 0) {
