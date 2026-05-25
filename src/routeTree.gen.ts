@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransferenciasRouteImport } from './routes/transferencias'
 import { Route as TabelaTaxasRouteImport } from './routes/tabela-taxas'
+import { Route as ScanRouteImport } from './routes/scan'
 import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as FiliaisRouteImport } from './routes/filiais'
 import { Route as ClassesRouteImport } from './routes/classes'
@@ -26,6 +27,11 @@ const TransferenciasRoute = TransferenciasRouteImport.update({
 const TabelaTaxasRoute = TabelaTaxasRouteImport.update({
   id: '/tabela-taxas',
   path: '/tabela-taxas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InventarioRoute = InventarioRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/classes': typeof ClassesRoute
   '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
+  '/scan': typeof ScanRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
   '/transferencias': typeof TransferenciasRoute
   '/ativos/$id': typeof AtivosIdRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/classes': typeof ClassesRoute
   '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
+  '/scan': typeof ScanRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
   '/transferencias': typeof TransferenciasRoute
   '/ativos/$id': typeof AtivosIdRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/classes': typeof ClassesRoute
   '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
+  '/scan': typeof ScanRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
   '/transferencias': typeof TransferenciasRoute
   '/ativos/$id': typeof AtivosIdRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/filiais'
     | '/inventario'
+    | '/scan'
     | '/tabela-taxas'
     | '/transferencias'
     | '/ativos/$id'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/filiais'
     | '/inventario'
+    | '/scan'
     | '/tabela-taxas'
     | '/transferencias'
     | '/ativos/$id'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/filiais'
     | '/inventario'
+    | '/scan'
     | '/tabela-taxas'
     | '/transferencias'
     | '/ativos/$id'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   ClassesRoute: typeof ClassesRoute
   FiliaisRoute: typeof FiliaisRoute
   InventarioRoute: typeof InventarioRoute
+  ScanRoute: typeof ScanRoute
   TabelaTaxasRoute: typeof TabelaTaxasRoute
   TransferenciasRoute: typeof TransferenciasRoute
   AtivosIdRoute: typeof AtivosIdRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/tabela-taxas'
       fullPath: '/tabela-taxas'
       preLoaderRoute: typeof TabelaTaxasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inventario': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClassesRoute: ClassesRoute,
   FiliaisRoute: FiliaisRoute,
   InventarioRoute: InventarioRoute,
+  ScanRoute: ScanRoute,
   TabelaTaxasRoute: TabelaTaxasRoute,
   TransferenciasRoute: TransferenciasRoute,
   AtivosIdRoute: AtivosIdRoute,
@@ -208,3 +229,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
