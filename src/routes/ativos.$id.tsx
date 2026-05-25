@@ -361,6 +361,60 @@ function AssetDetail() {
             </Table>
           </section>
         )}
+
+        <section className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="p-6 pb-3 flex items-center gap-2">
+            <History className="w-5 h-5 text-primary" />
+            <div>
+              <h2 className="font-display font-semibold">Histórico de Uso</h2>
+              <p className="text-xs text-muted-foreground">
+                Linha do tempo de responsáveis que tiveram este ativo
+              </p>
+            </div>
+          </div>
+          {custodyHistory.length === 0 ? (
+            <p className="p-6 text-sm text-muted-foreground">
+              Sem registos de atribuição. Use o botão <strong>Atribuir Responsável</strong> para começar.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Período</TableHead>
+                  <TableHead>Colaborador</TableHead>
+                  <TableHead>NIF</TableHead>
+                  <TableHead>Termo</TableHead>
+                  <TableHead>Observação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {custodyHistory.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="text-xs whitespace-nowrap">
+                      <span className="font-medium">{fmtDate(r.startDate)}</span>
+                      <span className="text-muted-foreground mx-1">→</span>
+                      <span className={r.endDate ? "font-medium" : "text-success font-semibold"}>
+                        {r.endDate ? fmtDate(r.endDate) : "Actual"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="font-medium">{r.custodianName}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.taxId ?? "—"}</TableCell>
+                    <TableCell>
+                      {r.termSigned ? (
+                        <Badge variant="outline" className="bg-success/15 text-success border-success/20">Assinado</Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-muted text-muted-foreground">—</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[280px] truncate">
+                      {r.note ?? "—"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </section>
       </div>
     </AppShell>
   );
