@@ -6,6 +6,7 @@ import {
   Calendar,
   Network,
   ArrowLeftRight,
+  ScanLine,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StatCard } from "@/components/StatCard";
@@ -127,7 +128,15 @@ function Dashboard() {
                 : "Visualização isolada da filial seleccionada"}
             </p>
           </div>
-          <Button asChild><Link to="/ativos/novo">+ Registar Ativo</Link></Button>
+          <div className="flex gap-2">
+            <Button asChild size="lg" variant="default" className="bg-primary hover:bg-primary/90 shadow-lg">
+              <Link to="/scan">
+                <ScanLine className="w-5 h-5 mr-2" />
+                Escanear Etiqueta
+              </Link>
+            </Button>
+            <Button asChild variant="outline"><Link to="/ativos/novo">+ Registar Ativo</Link></Button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { Search, ScanLine } from "lucide-react";
 
 export const Route = createFileRoute("/inventario")({
   component: Inventario,
@@ -105,9 +105,17 @@ function Inventario() {
               {rows.length} de {assets.length} ativos · ordenação A-Z por classe
             </p>
           </div>
-          <Button asChild>
-            <Link to="/ativos/novo">+ Registar Ativo</Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild size="lg" className="shadow-lg">
+              <Link to="/scan">
+                <ScanLine className="w-5 h-5 mr-2" />
+                Escanear Etiqueta
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/ativos/novo">+ Registar Ativo</Link>
+            </Button>
+          </div>
         </header>
 
         <div className="rounded-xl border border-border bg-card p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
