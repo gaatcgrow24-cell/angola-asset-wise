@@ -294,6 +294,56 @@ function NovoAtivo() {
                 </div>
               </div>
             </section>
+
+            <section className="rounded-xl border border-border bg-card p-6 space-y-4">
+              <div>
+                <h2 className="font-display font-semibold">Responsável pelo Ativo</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Opcional no momento do cadastro — pode ser atribuído mais tarde na ficha do ativo.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label>Colaborador / Usuário Actual</Label>
+                  <Input
+                    value={custName}
+                    onChange={(e) => setCustName(e.target.value)}
+                    placeholder="Ex.: João António Silva"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>NIF do Colaborador</Label>
+                  <Input
+                    value={custTaxId}
+                    onChange={(e) => setCustTaxId(e.target.value)}
+                    placeholder="Opcional"
+                    className="font-mono"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Data de Entrega / Atribuição</Label>
+                  <Input
+                    type="date"
+                    value={custDate}
+                    onChange={(e) => setCustDate(e.target.value)}
+                    disabled={!custName.trim()}
+                  />
+                </div>
+              </div>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <Checkbox
+                  checked={custSigned}
+                  onCheckedChange={(v) => setCustSigned(v === true)}
+                  disabled={!custName.trim()}
+                />
+                <span className="text-sm">
+                  <span className="font-medium">Termo de Responsabilidade assinado</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Marca como assinado se o colaborador já recebeu e validou o termo.
+                  </span>
+                </span>
+              </label>
+            </section>
           </div>
 
           <aside className="space-y-4">
