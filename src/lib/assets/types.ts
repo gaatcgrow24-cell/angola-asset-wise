@@ -19,6 +19,15 @@ export interface DepreciationCategory {
   pgcAccount: string;
 }
 
+export interface Custodian {
+  name: string;
+  taxId?: string;
+  assignedDate: string;
+  responsibilityTermSigned: boolean;
+  termSignedDate?: string;
+  note?: string;
+}
+
 export interface Asset {
   id: string;
   code: string;
@@ -31,6 +40,8 @@ export interface Asset {
   departmentId?: string;
   locationId?: string;
   inTransitToBranchId?: string;
+  // Responsável actual
+  custodian?: Custodian;
   // Fiscal
   acquisitionDate: string;
   inServiceDate: string;

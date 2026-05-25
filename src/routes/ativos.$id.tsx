@@ -33,8 +33,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Trash2, ArrowRight, Building2 } from "lucide-react";
+import { ArrowLeft, Trash2, ArrowRight, Building2, UserCheck, History } from "lucide-react";
 import { toast } from "sonner";
+import { AssetLabelDialog } from "@/components/AssetLabelDialog";
+import { CustodianDialog } from "@/components/CustodianDialog";
+import { ResponsibilityTermDialog } from "@/components/ResponsibilityTermDialog";
+import { useCustody } from "@/lib/custody/store";
 
 export const Route = createFileRoute("/ativos/$id")({
   component: AssetDetail,
@@ -45,6 +49,8 @@ function AssetDetail() {
   const { id } = Route.useParams();
   const { assets, ready, dispose, remove } = useAssets();
   const { branches, departments, locations, transfers } = useOrg();
+  const { forAsset } = useCustody();
+  const custodyHistory = forAsset(id);
   const navigate = useNavigate();
   const asset = assets.find((a) => a.id === id);
   const assetTransfers = transfers.filter((t) => t.assetId === id);
@@ -143,7 +149,16 @@ function AssetDetail() {
               {location && <> · {location.name}</>}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <AssetLabelDialog
+              assetId={asset.id}
+              assetCode={asset.code}
+              description={asset.description}
+              branchName={branch?.name}
+              departmentName={department?.name}
+            />
+            {!isClosed && <CustodianDialog asset={asset} />}
+            <ResponsibilityTermDialog asset={asset} branchName={branch?.name} />
             {!isClosed && (
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
@@ -193,6 +208,39 @@ function AssetDetail() {
             </Button>
           </div>
         </header>
+
+        {asset.custodian && (
+          <section className="rounded-xl border border-primary/30 bg-primary/5 p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                <UserCheck className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs uppercase tracking-widest text-primary font-semibold">
+                  Responsável Actual
+                </p>
+                <p className="font-display font-semibold text-lg mt-0.5">
+                  {asset.custodian.name}
+                </p>
+                <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground mt-1">
+                  {asset.custodian.taxId && (
+                    <span>NIF: <span className="font-mono text-foreground">{asset.custodian.taxId}</span></span>
+                  )}
+                  <span>Atribuído em {fmtDate(asset.custodian.assignedDate)}</span>
+                  {asset.custodian.responsibilityTermSigned ? (
+                    <Badge variant="outline" className="bg-success/15 text-success border-success/20">
+                      Termo assinado {asset.custodian.termSignedDate ? `· ${fmtDate(asset.custodian.termSignedDate)}` : ""}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-warning/15 text-warning border-warning/20">
+                      Termo pendente
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Metric label="Valor de Aquisição" value={fmtKz(asset.acquisitionValue)} />
@@ -313,6 +361,60 @@ function AssetDetail() {
             </Table>
           </section>
         )}
+
+        <section className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="p-6 pb-3 flex items-center gap-2">
+            <History className="w-5 h-5 text-primary" />
+            <div>
+              <h2 className="font-display font-semibold">Histórico de Uso</h2>
+              <p className="text-xs text-muted-foreground">
+                Linha do tempo de responsáveis que tiveram este ativo
+              </p>
+            </div>
+          </div>
+          {custodyHistory.length === 0 ? (
+            <p className="p-6 text-sm text-muted-foreground">
+              Sem registos de atribuição. Use o botão <strong>Atribuir Responsável</strong> para começar.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Período</TableHead>
+                  <TableHead>Colaborador</TableHead>
+                  <TableHead>NIF</TableHead>
+                  <TableHead>Termo</TableHead>
+                  <TableHead>Observação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {custodyHistory.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="text-xs whitespace-nowrap">
+                      <span className="font-medium">{fmtDate(r.startDate)}</span>
+                      <span className="text-muted-foreground mx-1">→</span>
+                      <span className={r.endDate ? "font-medium" : "text-success font-semibold"}>
+                        {r.endDate ? fmtDate(r.endDate) : "Actual"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="font-medium">{r.custodianName}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.taxId ?? "—"}</TableCell>
+                    <TableCell>
+                      {r.termSigned ? (
+                        <Badge variant="outline" className="bg-success/15 text-success border-success/20">Assinado</Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-muted text-muted-foreground">—</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[280px] truncate">
+                      {r.note ?? "—"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </section>
       </div>
     </AppShell>
   );

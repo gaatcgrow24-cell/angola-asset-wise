@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { AssetNature } from "@/lib/assets/types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useCustody } from "@/lib/custody/store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/ativos/novo")({
@@ -35,6 +37,7 @@ function NovoAtivo() {
   const { assets, create } = useAssets();
   const { branches, departments, locations } = useOrg();
   const { branchId: ctxBranch } = useCurrentBranch();
+  const { assign } = useCustody();
   const navigate = useNavigate();
 
   const today = new Date().toISOString().slice(0, 10);
@@ -51,6 +54,11 @@ function NovoAtivo() {
   const [acquisitionValue, setVal] = useState("0");
   const [residualValue, setRes] = useState("0");
   const [notes, setNotes] = useState("");
+  // Responsável
+  const [custName, setCustName] = useState("");
+  const [custTaxId, setCustTaxId] = useState("");
+  const [custDate, setCustDate] = useState(today);
+  const [custSigned, setCustSigned] = useState(false);
 
   useEffect(() => {
     if (!branchId && branches.length > 0) {
@@ -105,7 +113,26 @@ function NovoAtivo() {
       inServiceDate,
       acquisitionValue: aq,
       residualValue: rv,
+      custodian: custName.trim()
+        ? {
+            name: custName.trim(),
+            taxId: custTaxId.trim() || undefined,
+            assignedDate: custDate,
+            responsibilityTermSigned: custSigned,
+            termSignedDate: custSigned ? today : undefined,
+          }
+        : undefined,
     });
+    if (custName.trim()) {
+      assign({
+        assetId: a.id,
+        custodianName: custName.trim(),
+        taxId: custTaxId.trim() || undefined,
+        startDate: custDate,
+        termSigned: custSigned,
+        termSignedDate: custSigned ? today : undefined,
+      });
+    }
     toast.success(`Ativo ${a.code} registado.`);
     navigate({ to: "/ativos/$id", params: { id: a.id } });
   }
@@ -266,6 +293,56 @@ function NovoAtivo() {
                   <Input type="number" min="0" step="0.01" value={residualValue} onChange={(e) => setRes(e.target.value)} className="tabular" />
                 </div>
               </div>
+            </section>
+
+            <section className="rounded-xl border border-border bg-card p-6 space-y-4">
+              <div>
+                <h2 className="font-display font-semibold">Responsável pelo Ativo</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Opcional no momento do cadastro — pode ser atribuído mais tarde na ficha do ativo.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label>Colaborador / Usuário Actual</Label>
+                  <Input
+                    value={custName}
+                    onChange={(e) => setCustName(e.target.value)}
+                    placeholder="Ex.: João António Silva"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>NIF do Colaborador</Label>
+                  <Input
+                    value={custTaxId}
+                    onChange={(e) => setCustTaxId(e.target.value)}
+                    placeholder="Opcional"
+                    className="font-mono"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Data de Entrega / Atribuição</Label>
+                  <Input
+                    type="date"
+                    value={custDate}
+                    onChange={(e) => setCustDate(e.target.value)}
+                    disabled={!custName.trim()}
+                  />
+                </div>
+              </div>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <Checkbox
+                  checked={custSigned}
+                  onCheckedChange={(v) => setCustSigned(v === true)}
+                  disabled={!custName.trim()}
+                />
+                <span className="text-sm">
+                  <span className="font-medium">Termo de Responsabilidade assinado</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Marca como assinado se o colaborador já recebeu e validou o termo.
+                  </span>
+                </span>
+              </label>
             </section>
           </div>
 
