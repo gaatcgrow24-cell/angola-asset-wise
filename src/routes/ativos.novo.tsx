@@ -113,7 +113,26 @@ function NovoAtivo() {
       inServiceDate,
       acquisitionValue: aq,
       residualValue: rv,
+      custodian: custName.trim()
+        ? {
+            name: custName.trim(),
+            taxId: custTaxId.trim() || undefined,
+            assignedDate: custDate,
+            responsibilityTermSigned: custSigned,
+            termSignedDate: custSigned ? today : undefined,
+          }
+        : undefined,
     });
+    if (custName.trim()) {
+      assign({
+        assetId: a.id,
+        custodianName: custName.trim(),
+        taxId: custTaxId.trim() || undefined,
+        startDate: custDate,
+        termSigned: custSigned,
+        termSignedDate: custSigned ? today : undefined,
+      });
+    }
     toast.success(`Ativo ${a.code} registado.`);
     navigate({ to: "/ativos/$id", params: { id: a.id } });
   }
