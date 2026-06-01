@@ -39,6 +39,7 @@ import { AssetLabelDialog } from "@/components/AssetLabelDialog";
 import { CustodianDialog } from "@/components/CustodianDialog";
 import { ResponsibilityTermDialog } from "@/components/ResponsibilityTermDialog";
 import { useCustody } from "@/lib/custody/store";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 export const Route = createFileRoute("/ativos/$id")({
   component: AssetDetail,
@@ -51,6 +52,8 @@ function AssetDetail() {
   const { branches, departments, locations, transfers } = useOrg();
   const { forAsset } = useCustody();
   const custodyHistory = forAsset(id);
+  const { role } = useAuth();
+  const isAdmin = role === "admin";
   const navigate = useNavigate();
   const asset = assets.find((a) => a.id === id);
   const assetTransfers = transfers.filter((t) => t.assetId === id);
@@ -159,7 +162,7 @@ function AssetDetail() {
             />
             {!isClosed && <CustodianDialog asset={asset} />}
             <ResponsibilityTermDialog asset={asset} branchName={branch?.name} />
-            {!isClosed && (
+            {!isClosed && isAdmin && (
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline">Abater / Alienar</Button>
