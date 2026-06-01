@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAssets } from "@/lib/assets/store";
-import { ArrowLeft, Camera, ScanLine } from "lucide-react";
+import { ArrowLeft, Camera, ScanLine, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/scan")({
@@ -13,29 +13,57 @@ export const Route = createFileRoute("/scan")({
   head: () => ({ meta: [{ title: "Escanear Etiqueta — Imobilizado.AO" }] }),
 });
 
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.value = 1320;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+    setTimeout(() => ctx.close(), 300);
+  } catch {}
+}
+
 function ScanPage() {
   const { assets, ready } = useAssets();
   const navigate = useNavigate();
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const handledRef = useRef(false);
   const [scanning, setScanning] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [manualCode, setManualCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [permission, setPermission] = useState<"unknown" | "granted" | "denied" | "prompt">("unknown");
 
-  function resolve(raw: string) {
+  useEffect(() => {
+    if (!navigator.permissions || !(navigator.permissions as any).query) return;
+    (navigator.permissions as any)
+      .query({ name: "camera" })
+      .then((res: PermissionStatus) => {
+        setPermission(res.state as any);
+        res.onchange = () => setPermission(res.state as any);
+      })
+      .catch(() => {});
+  }, []);
+
+  function resolve(raw: string): boolean {
     const trimmed = raw.trim();
-    // Pode ser uma URL completa (/ativos/<id>) ou código IMB-XXXX
     const urlMatch = trimmed.match(/\/ativos\/([^/?#]+)/);
     if (urlMatch) {
       const id = decodeURIComponent(urlMatch[1]);
-      const exists = assets.find((a) => a.id === id);
-      if (exists) {
+      if (assets.find((a) => a.id === id)) {
         navigate({ to: "/ativos/$id", params: { id } });
         return true;
       }
     }
-    const byCode = assets.find(
-      (a) => a.code.toLowerCase() === trimmed.toLowerCase(),
-    );
+    const byCode = assets.find((a) => a.code.toLowerCase() === trimmed.toLowerCase());
     if (byCode) {
       navigate({ to: "/ativos/$id", params: { id: byCode.id } });
       return true;
@@ -45,37 +73,58 @@ function ScanPage() {
 
   async function startScan() {
     setError(null);
+    setStarting(true);
+    handledRef.current = false;
     try {
       const el = document.getElementById("qr-reader");
       if (!el) return;
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
-      setScanning(true);
+
       await scanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 260, height: 260 } },
+        { facingMode: { ideal: "environment" } },
+        { fps: 12, qrbox: { width: 260, height: 260 } },
         (decoded) => {
+          if (handledRef.current) return;
           if (resolve(decoded)) {
+            handledRef.current = true;
+            playBeep();
             scanner.stop().catch(() => {});
+            setScanning(false);
           } else {
-            toast.error(`Código "${decoded}" não corresponde a nenhum ativo.`);
+            // Avoid toast spam — only show once every 2s
+            const now = Date.now();
+            if (!(window as any).__lastScanWarn || now - (window as any).__lastScanWarn > 2000) {
+              (window as any).__lastScanWarn = now;
+              toast.error(`Código "${decoded}" não corresponde a nenhum ativo.`);
+            }
           }
         },
         () => {},
       );
+      setScanning(true);
+      setStarting(false);
     } catch (e: any) {
+      setStarting(false);
       setScanning(false);
-      setError(
-        e?.message ??
-          "Não foi possível abrir a câmara. Verifique permissões do navegador.",
-      );
+      const name = e?.name ?? "";
+      if (name === "NotAllowedError" || /Permission/i.test(String(e?.message))) {
+        setPermission("denied");
+        setError(
+          "Acesso à câmara bloqueado. Por favor, permita o acesso à câmara nas configurações do seu navegador e tente novamente.",
+        );
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        setError("Nenhuma câmara encontrada neste dispositivo. Use o campo manual abaixo.");
+      } else if (name === "NotReadableError" || name === "TrackStartError") {
+        setError("A câmara está a ser usada por outra aplicação. Feche-a e tente novamente.");
+      } else {
+        setError(e?.message ?? "Não foi possível abrir a câmara. Verifique permissões do navegador.");
+      }
     }
   }
 
   async function stopScan() {
-    try {
-      await scannerRef.current?.stop();
-    } catch {}
+    try { await scannerRef.current?.stop(); } catch {}
     setScanning(false);
   }
 
@@ -88,6 +137,7 @@ function ScanPage() {
   function submitManual(e: React.FormEvent) {
     e.preventDefault();
     if (!ready) return;
+    if (!manualCode.trim()) return;
     if (!resolve(manualCode)) {
       toast.error("Código não encontrado no inventário.");
     }
@@ -96,31 +146,37 @@ function ScanPage() {
   return (
     <AppShell>
       <div className="p-6 lg:p-10 max-w-2xl space-y-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
+        <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-4 h-4" /> Dashboard
         </Link>
 
         <header>
-          <p className="text-xs uppercase tracking-widest text-primary font-semibold">
-            Inventário Físico
-          </p>
-          <h1 className="text-3xl font-display font-semibold mt-1">
-            Escanear Etiqueta
-          </h1>
+          <p className="text-xs uppercase tracking-widest text-primary font-semibold">Inventário Físico</p>
+          <h1 className="text-3xl font-display font-semibold mt-1">Escanear Etiqueta</h1>
           <p className="text-muted-foreground mt-1">
-            Aponte a câmara ao QR Code ou código de barras colado no ativo.
+            Aponte a câmara ao QR Code ou código de barras do activo. Detecção contínua com redirecionamento automático.
           </p>
         </header>
+
+        {permission === "denied" && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 flex gap-3">
+            <ShieldAlert className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-destructive">Acesso à câmara bloqueado</p>
+              <p className="text-muted-foreground mt-1">
+                Por favor, permita o acesso à câmara nas configurações do seu navegador
+                (ícone de cadeado na barra de endereço) e recarregue a página.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <div
             id="qr-reader"
             className="w-full aspect-square bg-black/90 flex items-center justify-center text-white/60 text-sm"
           >
-            {!scanning && (
+            {!scanning && !starting && (
               <div className="text-center px-6">
                 <ScanLine className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>Câmara desligada</p>
@@ -129,24 +185,17 @@ function ScanPage() {
           </div>
           <div className="p-4 flex gap-2">
             {!scanning ? (
-              <Button onClick={startScan} className="flex-1" size="lg">
+              <Button onClick={startScan} className="flex-1" size="lg" disabled={starting}>
                 <Camera className="w-5 h-5 mr-2" />
-                Iniciar Câmara
+                {starting ? "A iniciar…" : "Iniciar Câmara"}
               </Button>
             ) : (
-              <Button
-                onClick={stopScan}
-                variant="outline"
-                className="flex-1"
-                size="lg"
-              >
+              <Button onClick={stopScan} variant="outline" className="flex-1" size="lg">
                 Parar
               </Button>
             )}
           </div>
-          {error && (
-            <p className="px-4 pb-4 text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="px-4 pb-4 text-sm text-destructive">{error}</p>}
         </div>
 
         <div className="rounded-xl border border-border bg-card p-4">
