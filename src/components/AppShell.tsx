@@ -9,9 +9,14 @@ import {
   ArrowLeftRight,
   ListOrdered,
   ScanLine,
+  LogOut,
+  ShieldCheck,
+  Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrg, useCurrentBranch } from "@/lib/org/store";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -22,24 +27,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const nav = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/inventario", label: "Inventário", icon: Boxes },
-  { to: "/scan", label: "Escanear Etiqueta", icon: ScanLine },
-  { to: "/ativos/novo", label: "Novo Ativo", icon: PlusCircle },
-  { to: "/transferencias", label: "Transferências", icon: ArrowLeftRight },
-  { to: "/filiais", label: "Filiais", icon: Network },
-  { to: "/classes", label: "Classes A-Z", icon: ListOrdered },
-  { to: "/tabela-taxas", label: "Tabela de Taxas", icon: BookOpen },
+const allNav = [
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "tecnico"] },
+  { to: "/inventario", label: "Inventário", icon: Boxes, roles: ["admin", "tecnico"] },
+  { to: "/scan", label: "Escanear Etiqueta", icon: ScanLine, roles: ["admin", "tecnico"] },
+  { to: "/ativos/novo", label: "Novo Ativo", icon: PlusCircle, roles: ["admin"] },
+  { to: "/transferencias", label: "Transferências", icon: ArrowLeftRight, roles: ["admin"] },
+  { to: "/filiais", label: "Filiais", icon: Network, roles: ["admin"] },
+  { to: "/classes", label: "Classes A-Z", icon: ListOrdered, roles: ["admin", "tecnico"] },
+  { to: "/tabela-taxas", label: "Tabela de Taxas", icon: BookOpen, roles: ["admin", "tecnico"] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { branches } = useOrg();
   const { branchId, setBranchId } = useCurrentBranch();
+  const { user, role, signOut } = useAuth();
 
   const sede = branches.find((b) => b.type === "sede");
   const others = branches.filter((b) => b.type !== "sede");
+  const nav = allNav.filter((n) => !role || n.roles.includes(role));
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -112,9 +119,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="px-6 py-4 border-t border-sidebar-border text-xs text-sidebar-foreground/50">
-          <p>República de Angola</p>
-          <p>Método das Quotas Constantes</p>
+        <div className="px-4 py-3 border-t border-sidebar-border space-y-2">
+          <div className="flex items-center gap-2 px-2">
+            <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-xs font-semibold uppercase">
+              {(user?.email ?? "?").slice(0, 2)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium truncate">{user?.email}</p>
+              <p className="text-[10px] text-sidebar-foreground/60 flex items-center gap-1">
+                {role === "admin" ? (
+                  <><ShieldCheck className="w-3 h-3" /> Administrador</>
+                ) : (
+                  <><Wrench className="w-3 h-3" /> Técnico</>
+                )}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+            onClick={() => signOut()}
+          >
+            <LogOut className="w-4 h-4 mr-2" /> Terminar sessão
+          </Button>
         </div>
       </aside>
 

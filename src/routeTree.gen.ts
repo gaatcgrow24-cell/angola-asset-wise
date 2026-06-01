@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransferenciasRouteImport } from './routes/transferencias'
 import { Route as TabelaTaxasRouteImport } from './routes/tabela-taxas'
 import { Route as ScanRouteImport } from './routes/scan'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as FiliaisRouteImport } from './routes/filiais'
 import { Route as ClassesRouteImport } from './routes/classes'
@@ -32,6 +33,11 @@ const TabelaTaxasRoute = TabelaTaxasRouteImport.update({
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InventarioRoute = InventarioRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/classes': typeof ClassesRoute
   '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
+  '/login': typeof LoginRoute
   '/scan': typeof ScanRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
   '/transferencias': typeof TransferenciasRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/classes': typeof ClassesRoute
   '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
+  '/login': typeof LoginRoute
   '/scan': typeof ScanRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
   '/transferencias': typeof TransferenciasRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/classes': typeof ClassesRoute
   '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
+  '/login': typeof LoginRoute
   '/scan': typeof ScanRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
   '/transferencias': typeof TransferenciasRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/filiais'
     | '/inventario'
+    | '/login'
     | '/scan'
     | '/tabela-taxas'
     | '/transferencias'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/filiais'
     | '/inventario'
+    | '/login'
     | '/scan'
     | '/tabela-taxas'
     | '/transferencias'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/filiais'
     | '/inventario'
+    | '/login'
     | '/scan'
     | '/tabela-taxas'
     | '/transferencias'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   ClassesRoute: typeof ClassesRoute
   FiliaisRoute: typeof FiliaisRoute
   InventarioRoute: typeof InventarioRoute
+  LoginRoute: typeof LoginRoute
   ScanRoute: typeof ScanRoute
   TabelaTaxasRoute: typeof TabelaTaxasRoute
   TransferenciasRoute: typeof TransferenciasRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/scan'
       fullPath: '/scan'
       preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inventario': {
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClassesRoute: ClassesRoute,
   FiliaisRoute: FiliaisRoute,
   InventarioRoute: InventarioRoute,
+  LoginRoute: LoginRoute,
   ScanRoute: ScanRoute,
   TabelaTaxasRoute: TabelaTaxasRoute,
   TransferenciasRoute: TransferenciasRoute,
