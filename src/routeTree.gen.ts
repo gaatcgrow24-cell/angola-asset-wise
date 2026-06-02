@@ -12,11 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransferenciasRouteImport } from './routes/transferencias'
 import { Route as TabelaTaxasRouteImport } from './routes/tabela-taxas'
 import { Route as ScanRouteImport } from './routes/scan'
+import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as FiliaisRouteImport } from './routes/filiais'
 import { Route as ClassesRouteImport } from './routes/classes'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PipelineNovoRouteImport } from './routes/pipeline.novo'
+import { Route as PipelineIdRouteImport } from './routes/pipeline.$id'
 import { Route as AtivosNovoRouteImport } from './routes/ativos.novo'
 import { Route as AtivosIdRouteImport } from './routes/ativos.$id'
 
@@ -33,6 +36,11 @@ const TabelaTaxasRoute = TabelaTaxasRouteImport.update({
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PipelineRoute = PipelineRouteImport.update({
+  id: '/pipeline',
+  path: '/pipeline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -60,6 +68,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PipelineNovoRoute = PipelineNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => PipelineRoute,
+} as any)
+const PipelineIdRoute = PipelineIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PipelineRoute,
+} as any)
 const AtivosNovoRoute = AtivosNovoRouteImport.update({
   id: '/ativos/novo',
   path: '/ativos/novo',
@@ -77,11 +95,14 @@ export interface FileRoutesByFullPath {
   '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
   '/login': typeof LoginRoute
+  '/pipeline': typeof PipelineRouteWithChildren
   '/scan': typeof ScanRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
   '/transferencias': typeof TransferenciasRoute
   '/ativos/$id': typeof AtivosIdRoute
   '/ativos/novo': typeof AtivosNovoRoute
+  '/pipeline/$id': typeof PipelineIdRoute
+  '/pipeline/novo': typeof PipelineNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -89,11 +110,14 @@ export interface FileRoutesByTo {
   '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
   '/login': typeof LoginRoute
+  '/pipeline': typeof PipelineRouteWithChildren
   '/scan': typeof ScanRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
   '/transferencias': typeof TransferenciasRoute
   '/ativos/$id': typeof AtivosIdRoute
   '/ativos/novo': typeof AtivosNovoRoute
+  '/pipeline/$id': typeof PipelineIdRoute
+  '/pipeline/novo': typeof PipelineNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -102,11 +126,14 @@ export interface FileRoutesById {
   '/filiais': typeof FiliaisRoute
   '/inventario': typeof InventarioRoute
   '/login': typeof LoginRoute
+  '/pipeline': typeof PipelineRouteWithChildren
   '/scan': typeof ScanRoute
   '/tabela-taxas': typeof TabelaTaxasRoute
   '/transferencias': typeof TransferenciasRoute
   '/ativos/$id': typeof AtivosIdRoute
   '/ativos/novo': typeof AtivosNovoRoute
+  '/pipeline/$id': typeof PipelineIdRoute
+  '/pipeline/novo': typeof PipelineNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -116,11 +143,14 @@ export interface FileRouteTypes {
     | '/filiais'
     | '/inventario'
     | '/login'
+    | '/pipeline'
     | '/scan'
     | '/tabela-taxas'
     | '/transferencias'
     | '/ativos/$id'
     | '/ativos/novo'
+    | '/pipeline/$id'
+    | '/pipeline/novo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -128,11 +158,14 @@ export interface FileRouteTypes {
     | '/filiais'
     | '/inventario'
     | '/login'
+    | '/pipeline'
     | '/scan'
     | '/tabela-taxas'
     | '/transferencias'
     | '/ativos/$id'
     | '/ativos/novo'
+    | '/pipeline/$id'
+    | '/pipeline/novo'
   id:
     | '__root__'
     | '/'
@@ -140,11 +173,14 @@ export interface FileRouteTypes {
     | '/filiais'
     | '/inventario'
     | '/login'
+    | '/pipeline'
     | '/scan'
     | '/tabela-taxas'
     | '/transferencias'
     | '/ativos/$id'
     | '/ativos/novo'
+    | '/pipeline/$id'
+    | '/pipeline/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -153,6 +189,7 @@ export interface RootRouteChildren {
   FiliaisRoute: typeof FiliaisRoute
   InventarioRoute: typeof InventarioRoute
   LoginRoute: typeof LoginRoute
+  PipelineRoute: typeof PipelineRouteWithChildren
   ScanRoute: typeof ScanRoute
   TabelaTaxasRoute: typeof TabelaTaxasRoute
   TransferenciasRoute: typeof TransferenciasRoute
@@ -181,6 +218,13 @@ declare module '@tanstack/react-router' {
       path: '/scan'
       fullPath: '/scan'
       preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipeline': {
+      id: '/pipeline'
+      path: '/pipeline'
+      fullPath: '/pipeline'
+      preLoaderRoute: typeof PipelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -218,6 +262,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pipeline/novo': {
+      id: '/pipeline/novo'
+      path: '/novo'
+      fullPath: '/pipeline/novo'
+      preLoaderRoute: typeof PipelineNovoRouteImport
+      parentRoute: typeof PipelineRoute
+    }
+    '/pipeline/$id': {
+      id: '/pipeline/$id'
+      path: '/$id'
+      fullPath: '/pipeline/$id'
+      preLoaderRoute: typeof PipelineIdRouteImport
+      parentRoute: typeof PipelineRoute
+    }
     '/ativos/novo': {
       id: '/ativos/novo'
       path: '/ativos/novo'
@@ -235,12 +293,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PipelineRouteChildren {
+  PipelineIdRoute: typeof PipelineIdRoute
+  PipelineNovoRoute: typeof PipelineNovoRoute
+}
+
+const PipelineRouteChildren: PipelineRouteChildren = {
+  PipelineIdRoute: PipelineIdRoute,
+  PipelineNovoRoute: PipelineNovoRoute,
+}
+
+const PipelineRouteWithChildren = PipelineRoute._addFileChildren(
+  PipelineRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClassesRoute: ClassesRoute,
   FiliaisRoute: FiliaisRoute,
   InventarioRoute: InventarioRoute,
   LoginRoute: LoginRoute,
+  PipelineRoute: PipelineRouteWithChildren,
   ScanRoute: ScanRoute,
   TabelaTaxasRoute: TabelaTaxasRoute,
   TransferenciasRoute: TransferenciasRoute,

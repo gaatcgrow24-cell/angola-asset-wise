@@ -12,6 +12,7 @@ import {
   LogOut,
   ShieldCheck,
   Wrench,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrg, useCurrentBranch } from "@/lib/org/store";
@@ -30,6 +31,7 @@ import {
 const allNav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "tecnico"] },
   { to: "/inventario", label: "Inventário", icon: Boxes, roles: ["admin", "tecnico"] },
+  { to: "/pipeline", label: "Pipeline Comercial", icon: Briefcase, roles: ["admin", "tecnico"] },
   { to: "/scan", label: "Escanear Etiqueta", icon: ScanLine, roles: ["admin", "tecnico"] },
   { to: "/ativos/novo", label: "Novo Ativo", icon: PlusCircle, roles: ["admin"] },
   { to: "/transferencias", label: "Transferências", icon: ArrowLeftRight, roles: ["admin"] },
