@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Search, Plus, ExternalLink, Briefcase, Download } from "lucide-react";
+import { PipelineFormDialog } from "@/components/PipelineFormDialog";
 
 const CSV_HEADERS = [
   "Cliente", "Descrição", "Id Trabalho", "Id Pedido",
