@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { RequestIdField } from "@/components/RequestIdField";
 import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
 
@@ -48,20 +49,24 @@ function NovoPipeline() {
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.client || !form.description || !form.jobId) {
       toast.error("Cliente, Descrição e Id Trabalho são obrigatórios");
       return;
     }
-    create({
-      ...form,
-      requestAt: form.requestAt ? new Date(form.requestAt).toISOString() : undefined,
-      quotationStatus: form.quotationNumber ? "emitido" : form.quotationStatus,
-      orderStatus: form.orderNumber ? "emitido" : form.orderStatus,
-    });
-    toast.success("Registo criado");
-    navigate({ to: "/pipeline" });
+    try {
+      await create({
+        ...form,
+        requestAt: form.requestAt ? new Date(form.requestAt).toISOString() : undefined,
+        quotationStatus: form.quotationNumber ? "emitido" : form.quotationStatus,
+        orderStatus: form.orderNumber ? "emitido" : form.orderStatus,
+      });
+      toast.success("Registo criado");
+      navigate({ to: "/pipeline" });
+    } catch {
+      toast.error("Não foi possível criar o registo");
+    }
   };
 
   return (
@@ -83,7 +88,7 @@ function NovoPipeline() {
           </Section>
 
           <Section title="Pedido de Cotação">
-            <Field label="Id Pedido"><Input value={form.requestId} onChange={(e) => set("requestId", e.target.value)} placeholder="(EMAIL) / (WHATSAPP)" /></Field>
+            <Field label="Id Pedido"><RequestIdField value={form.requestId} onChange={(v) => set("requestId", v)} /></Field>
             <Field label="Link"><Input value={form.requestLink} onChange={(e) => set("requestLink", e.target.value)} placeholder="https://…" /></Field>
             <Field label="Data & Hora"><Input type="datetime-local" value={form.requestAt} onChange={(e) => set("requestAt", e.target.value)} /></Field>
           </Section>
