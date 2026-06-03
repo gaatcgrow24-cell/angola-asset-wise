@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Search, Plus, ExternalLink, Briefcase, Download } from "lucide-react";
+import { PipelineFormDialog } from "@/components/PipelineFormDialog";
 
 const CSV_HEADERS = [
   "Cliente", "Descrição", "Id Trabalho", "Id Pedido",
@@ -127,11 +128,13 @@ function PipelinePage() {
             <Button variant="outline" onClick={() => exportCsv(rows)}>
               <Download className="w-4 h-4 mr-2" /> Exportar CSV
             </Button>
-            <Button asChild>
-              <Link to="/pipeline/novo">
-                <Plus className="w-4 h-4 mr-2" /> Novo Registo
-              </Link>
-            </Button>
+            <PipelineFormDialog
+              trigger={
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" /> Novo Registo
+                </Button>
+              }
+            />
           </div>
         </div>
 
