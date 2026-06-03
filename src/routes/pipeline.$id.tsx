@@ -59,27 +59,34 @@ function EditPipeline() {
   const set = <K extends keyof PipelineEntry>(k: K, v: PipelineEntry[K]) =>
     setForm((f) => (f ? { ...f, [k]: v } : f));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.client || !form.description || !form.jobId) {
       toast.error("Cliente, Descrição e Id Trabalho são obrigatórios");
       return;
     }
-    update(form.id, {
-      ...form,
-      requestAt: form.requestAt ? new Date(form.requestAt).toISOString() : undefined,
-      quotationStatus: form.quotationNumber ? "emitido" : form.quotationStatus,
-      orderStatus: form.orderNumber ? "emitido" : form.orderStatus,
-    });
-    toast.success("Registo actualizado");
-    navigate({ to: "/pipeline" });
+    try {
+      await update(form.id, {
+        ...form,
+        requestAt: form.requestAt ? new Date(form.requestAt).toISOString() : undefined,
+        quotationStatus: form.quotationNumber ? "emitido" : form.quotationStatus,
+        orderStatus: form.orderNumber ? "emitido" : form.orderStatus,
+      });
+      toast.success("Registo actualizado");
+      navigate({ to: "/pipeline" });
+    } catch {
+      toast.error("Não foi possível guardar");
+    }
   };
 
-  const del = () => {
-    if (!confirm("Eliminar este registo?")) return;
-    remove(form.id);
-    toast.success("Eliminado");
-    navigate({ to: "/pipeline" });
+  const del = async () => {
+    try {
+      await remove(form.id);
+      toast.success("Eliminado");
+      navigate({ to: "/pipeline" });
+    } catch {
+      toast.error("Não foi possível eliminar");
+    }
   };
 
   return (
@@ -89,9 +96,30 @@ function EditPipeline() {
           <Button variant="ghost" size="sm" asChild>
             <Link to="/pipeline"><ArrowLeft className="w-4 h-4 mr-1" /> Voltar</Link>
           </Button>
-          <Button variant="ghost" size="sm" onClick={del} className="text-destructive hover:text-destructive">
-            <Trash2 className="w-4 h-4 mr-1" /> Eliminar
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                <Trash2 className="w-4 h-4 mr-1" /> Eliminar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Eliminar Registo</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acção não pode ser desfeita. Tens a certeza?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={del}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         <div>
           <h1 className="text-2xl md:text-3xl font-display font-semibold">{form.client} · {form.jobId}</h1>
