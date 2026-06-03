@@ -52,6 +52,32 @@ function orderBadge(s: string) {
   return <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Pendente</Badge>;
 }
 
+function exportCsv(rows: Array<{
+  client: string; description: string; jobId: string;
+  requestId?: string; quotationNumber?: string; quotationDate?: string;
+  quotationValueAoa?: number; paymentTerms?: string; incoterms?: string;
+  orderNumber?: string; orderDate?: string; orderStatus: string;
+}>) {
+  const lines = [
+    CSV_HEADERS.join(","),
+    ...rows.map((r) => [
+      r.client, r.description, r.jobId, r.requestId ?? "",
+      r.quotationNumber ?? "", r.quotationDate ?? "",
+      r.quotationValueAoa ?? "", r.paymentTerms ?? "",
+      r.incoterms ?? "", r.orderNumber ?? "", r.orderDate ?? "",
+      r.orderStatus === "emitido" ? "Emitido" : "Pendente",
+    ].map(csvCell).join(",")),
+  ];
+  const csv = "\uFEFF" + lines.join("\n");
+  const href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = `pipeline-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 function PipelinePage() {
   const { entries, ready } = usePipeline();
   const [q, setQ] = useState("");
