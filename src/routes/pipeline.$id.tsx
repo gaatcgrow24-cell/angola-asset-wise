@@ -134,7 +134,7 @@ function EditPipeline() {
           </Section>
 
           <Section title="Pedido de Cotação">
-            <Field label="Id Pedido"><Input value={form.requestId ?? ""} onChange={(e) => set("requestId", e.target.value)} /></Field>
+            <Field label="Id Pedido"><RequestIdField value={form.requestId ?? ""} onChange={(v) => set("requestId", v)} /></Field>
             <Field label="Link"><Input value={form.requestLink ?? ""} onChange={(e) => set("requestLink", e.target.value)} /></Field>
             <Field label="Data & Hora"><Input type="datetime-local" value={form.requestAt ?? ""} onChange={(e) => set("requestAt", e.target.value)} /></Field>
           </Section>
