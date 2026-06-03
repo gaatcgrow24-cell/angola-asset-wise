@@ -21,7 +21,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Plus, ExternalLink, Briefcase } from "lucide-react";
+import { Search, Plus, ExternalLink, Briefcase, Download } from "lucide-react";
+
+const CSV_HEADERS = [
+  "Cliente", "Descrição", "Id Trabalho", "Id Pedido",
+  "Nº Cotação", "Data Cotação", "Valor AOA", "Termos Pagamento",
+  "Incoterms", "Nº NE/Contrato", "Data NE", "Estado",
+];
+
+function csvCell(v: unknown): string {
+  const s = v == null ? "" : String(v);
+  if (/[",;\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
 
 export const Route = createFileRoute("/pipeline")({
   component: PipelinePage,
@@ -85,11 +97,16 @@ function PipelinePage() {
               Registo unificado de Trabalhos, Pedidos de Cotação, Cotações e Notas de Encomenda.
             </p>
           </div>
-          <Button asChild>
-            <Link to="/pipeline/novo">
-              <Plus className="w-4 h-4 mr-2" /> Novo Registo
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => exportCsv(rows)}>
+              <Download className="w-4 h-4 mr-2" /> Exportar CSV
+            </Button>
+            <Button asChild>
+              <Link to="/pipeline/novo">
+                <Plus className="w-4 h-4 mr-2" /> Novo Registo
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
