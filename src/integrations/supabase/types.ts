@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      pipeline_entries: {
+        Row: {
+          archived: boolean
+          client: string
+          created_at: string
+          description: string
+          id: string
+          incoterms: string | null
+          job_id: string
+          order_content: string | null
+          order_date: string | null
+          order_number: string | null
+          order_payment_terms: string | null
+          order_status: string
+          order_value_aoa: number | null
+          payment_terms: string | null
+          quotation_date: string | null
+          quotation_number: string | null
+          quotation_status: string
+          quotation_value_aoa: number | null
+          remarks: string | null
+          request_at: string | null
+          request_id: string | null
+          request_link: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived?: boolean
+          client: string
+          created_at?: string
+          description: string
+          id?: string
+          incoterms?: string | null
+          job_id: string
+          order_content?: string | null
+          order_date?: string | null
+          order_number?: string | null
+          order_payment_terms?: string | null
+          order_status?: string
+          order_value_aoa?: number | null
+          payment_terms?: string | null
+          quotation_date?: string | null
+          quotation_number?: string | null
+          quotation_status?: string
+          quotation_value_aoa?: number | null
+          remarks?: string | null
+          request_at?: string | null
+          request_id?: string | null
+          request_link?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived?: boolean
+          client?: string
+          created_at?: string
+          description?: string
+          id?: string
+          incoterms?: string | null
+          job_id?: string
+          order_content?: string | null
+          order_date?: string | null
+          order_number?: string | null
+          order_payment_terms?: string | null
+          order_status?: string
+          order_value_aoa?: number | null
+          payment_terms?: string | null
+          quotation_date?: string | null
+          quotation_number?: string | null
+          quotation_status?: string
+          quotation_value_aoa?: number | null
+          remarks?: string | null
+          request_at?: string | null
+          request_id?: string | null
+          request_link?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

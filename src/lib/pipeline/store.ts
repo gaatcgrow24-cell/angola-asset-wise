@@ -1,126 +1,166 @@
 import { useCallback, useEffect, useState } from "react";
-import type { PipelineEntry } from "./types";
+import { supabase } from "@/integrations/supabase/client";
+import type { PipelineEntry, OrderStatus, QuotationStatus } from "./types";
 
-const KEY = "pipeline.entries.v1";
-
-function uuid() {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+// Row shape (snake_case) in Supabase
+interface PipelineRow {
+  id: string;
+  client: string;
+  description: string;
+  job_id: string;
+  request_id: string | null;
+  request_link: string | null;
+  request_at: string | null;
+  quotation_number: string | null;
+  quotation_date: string | null;
+  quotation_value_aoa: number | string | null;
+  payment_terms: string | null;
+  incoterms: string | null;
+  quotation_status: string;
+  order_number: string | null;
+  order_content: string | null;
+  order_date: string | null;
+  order_value_aoa: number | string | null;
+  order_payment_terms: string | null;
+  order_status: string;
+  remarks: string | null;
+  archived: boolean | null;
+  created_at: string;
+  updated_at: string;
 }
 
-function seed(): PipelineEntry[] {
-  const now = new Date().toISOString();
-  return [
-    {
-      id: uuid(),
-      client: "AES",
-      description: "Recondicionamento de CCUs",
-      jobId: "2212301430 AES",
-      requestId: "(EMAIL)",
-      requestLink: "https://metallum.box.com/s/pqj5pxxz9fbe3pes52r7034u8u0imif7",
-      requestAt: "2022-12-30T14:30:00.000Z",
-      quotationStatus: "nao_emitido",
-      paymentTerms: "Net 30",
-      incoterms: "EXW",
-      orderNumber: "AES-MTL_CTT01ANX01",
-      orderDate: "2023-06-07",
-      orderStatus: "nao_emitido",
-      remarks: "Acordo de troca de serviços pendente.",
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: uuid(),
-      client: "CML",
-      description: "Fabricação de Spreader Bar",
-      jobId: "2408131106 CML",
-      requestId: "(WHATSAPP)",
-      requestLink: "https://metallum.app.box.com/file/1620374535811",
-      requestAt: "2024-08-13T11:06:00.000Z",
-      quotationNumber: "MS24017.PP01",
-      quotationDate: "2024-09-11",
-      quotationValueAoa: 3125250,
-      paymentTerms: "50 / 50",
-      incoterms: "DDP",
-      quotationStatus: "emitido",
-      orderStatus: "nao_emitido",
-      remarks: "Falta insistir para pagamento.",
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: uuid(),
-      client: "ICO",
-      description: "Decapagem e Pintura de Estrutura",
-      jobId: "2412302141 ICO",
-      requestId: "(EMAIL)",
-      requestLink: "https://metallum.box.com/s/uiomezp92k9ph93ts4n7gcra91fktwtt",
-      requestAt: "2024-12-30T21:41:00.000Z",
-      quotationNumber: "MS24042.Rev1",
-      quotationDate: "2024-12-31",
-      quotationValueAoa: 2305875,
-      paymentTerms: "Net 15",
-      incoterms: "EXW",
-      quotationStatus: "emitido",
-      orderStatus: "nao_emitido",
-      remarks: "Emitir factura.",
-      createdAt: now,
-      updatedAt: now,
-    },
-  ];
+const TABLE = "pipeline_entries";
+// Untyped client (types.ts is regenerated async; cast to keep TS happy now).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sb = supabase as any;
+
+function fromRow(r: PipelineRow): PipelineEntry {
+  return {
+    id: r.id,
+    client: r.client,
+    description: r.description,
+    jobId: r.job_id,
+    requestId: r.request_id ?? "",
+    requestLink: r.request_link ?? undefined,
+    requestAt: r.request_at ?? undefined,
+    quotationNumber: r.quotation_number ?? undefined,
+    quotationDate: r.quotation_date ?? undefined,
+    quotationValueAoa: r.quotation_value_aoa == null ? undefined : Number(r.quotation_value_aoa),
+    paymentTerms: r.payment_terms ?? undefined,
+    incoterms: r.incoterms ?? undefined,
+    quotationStatus: (r.quotation_status as QuotationStatus) ?? "nao_emitido",
+    orderNumber: r.order_number ?? undefined,
+    orderContent: r.order_content ?? undefined,
+    orderDate: r.order_date ?? undefined,
+    orderValueAoa: r.order_value_aoa == null ? undefined : Number(r.order_value_aoa),
+    orderPaymentTerms: r.order_payment_terms ?? undefined,
+    orderStatus: (r.order_status as OrderStatus) ?? "nao_emitido",
+    remarks: r.remarks ?? undefined,
+    archived: r.archived ?? false,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  };
 }
 
-function load(): PipelineEntry[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) {
-      const s = seed();
-      localStorage.setItem(KEY, JSON.stringify(s));
-      return s;
-    }
-    return JSON.parse(raw) as PipelineEntry[];
-  } catch {
+function toRow(e: Partial<PipelineEntry>): Partial<PipelineRow> {
+  const row: Partial<PipelineRow> = {};
+  if (e.client !== undefined) row.client = e.client;
+  if (e.description !== undefined) row.description = e.description;
+  if (e.jobId !== undefined) row.job_id = e.jobId;
+  if (e.requestId !== undefined) row.request_id = e.requestId || null;
+  if (e.requestLink !== undefined) row.request_link = e.requestLink || null;
+  if (e.requestAt !== undefined) row.request_at = e.requestAt || null;
+  if (e.quotationNumber !== undefined) row.quotation_number = e.quotationNumber || null;
+  if (e.quotationDate !== undefined) row.quotation_date = e.quotationDate || null;
+  if (e.quotationValueAoa !== undefined) row.quotation_value_aoa = e.quotationValueAoa ?? null;
+  if (e.paymentTerms !== undefined) row.payment_terms = e.paymentTerms || null;
+  if (e.incoterms !== undefined) row.incoterms = e.incoterms || null;
+  if (e.quotationStatus !== undefined) row.quotation_status = e.quotationStatus;
+  if (e.orderNumber !== undefined) row.order_number = e.orderNumber || null;
+  if (e.orderContent !== undefined) row.order_content = e.orderContent || null;
+  if (e.orderDate !== undefined) row.order_date = e.orderDate || null;
+  if (e.orderValueAoa !== undefined) row.order_value_aoa = e.orderValueAoa ?? null;
+  if (e.orderPaymentTerms !== undefined) row.order_payment_terms = e.orderPaymentTerms || null;
+  if (e.orderStatus !== undefined) row.order_status = e.orderStatus;
+  if (e.remarks !== undefined) row.remarks = e.remarks || null;
+  if (e.archived !== undefined) row.archived = e.archived;
+  return row;
+}
+
+async function fetchAll(): Promise<PipelineEntry[]> {
+  const { data, error } = await sb
+    .from(TABLE)
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("[pipeline] fetch error", error);
     return [];
   }
-}
-
-function save(list: PipelineEntry[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(KEY, JSON.stringify(list));
-  window.dispatchEvent(new CustomEvent("pipeline:changed"));
+  return ((data ?? []) as PipelineRow[]).map(fromRow);
 }
 
 export function usePipeline() {
   const [entries, setEntries] = useState<PipelineEntry[]>([]);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    setEntries(load());
+  const refresh = useCallback(async () => {
+    const list = await fetchAll();
+    setEntries(list);
     setReady(true);
-    const h = () => setEntries(load());
-    window.addEventListener("pipeline:changed", h);
-    window.addEventListener("storage", h);
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+    const h = () => void refresh();
+    if (typeof window !== "undefined") {
+      window.addEventListener("pipeline:changed", h);
+    }
     return () => {
-      window.removeEventListener("pipeline:changed", h);
-      window.removeEventListener("storage", h);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("pipeline:changed", h);
+      }
     };
+  }, [refresh]);
+
+  const notify = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("pipeline:changed"));
+    }
+  };
+
+  const create = useCallback(
+    async (data: Omit<PipelineEntry, "id" | "createdAt" | "updatedAt">) => {
+      const { data: inserted, error } = await sb
+        .from(TABLE)
+        .insert(toRow(data))
+        .select()
+        .single();
+      if (error) {
+        console.error("[pipeline] insert error", error);
+        throw error;
+      }
+      notify();
+      return fromRow(inserted as PipelineRow);
+    },
+    [],
+  );
+
+  const update = useCallback(async (id: string, patch: Partial<PipelineEntry>) => {
+    const { error } = await sb.from(TABLE).update(toRow(patch)).eq("id", id);
+    if (error) {
+      console.error("[pipeline] update error", error);
+      throw error;
+    }
+    notify();
   }, []);
 
-  const create = useCallback((data: Omit<PipelineEntry, "id" | "createdAt" | "updatedAt">) => {
-    const now = new Date().toISOString();
-    const entry: PipelineEntry = { ...data, id: uuid(), createdAt: now, updatedAt: now };
-    save([entry, ...load()]);
-    return entry;
-  }, []);
-
-  const update = useCallback((id: string, patch: Partial<PipelineEntry>) => {
-    const now = new Date().toISOString();
-    save(load().map((e) => (e.id === id ? { ...e, ...patch, updatedAt: now } : e)));
-  }, []);
-
-  const remove = useCallback((id: string) => {
-    save(load().filter((e) => e.id !== id));
+  const remove = useCallback(async (id: string) => {
+    const { error } = await sb.from(TABLE).delete().eq("id", id);
+    if (error) {
+      console.error("[pipeline] delete error", error);
+      throw error;
+    }
+    notify();
   }, []);
 
   return { entries, ready, create, update, remove };

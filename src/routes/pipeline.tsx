@@ -21,7 +21,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Plus, ExternalLink, Briefcase } from "lucide-react";
+import { Search, Plus, ExternalLink, Briefcase, Download } from "lucide-react";
+
+const CSV_HEADERS = [
+  "Cliente", "Descrição", "Id Trabalho", "Id Pedido",
+  "Nº Cotação", "Data Cotação", "Valor AOA", "Termos Pagamento",
+  "Incoterms", "Nº NE/Contrato", "Data NE", "Estado",
+];
+
+function csvCell(v: unknown): string {
+  const s = v == null ? "" : String(v);
+  if (/[",;\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
 
 export const Route = createFileRoute("/pipeline")({
   component: PipelinePage,
@@ -38,6 +50,32 @@ function orderBadge(s: string) {
   if (s === "emitido")
     return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Emitido</Badge>;
   return <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Pendente</Badge>;
+}
+
+function exportCsv(rows: Array<{
+  client: string; description: string; jobId: string;
+  requestId?: string; quotationNumber?: string; quotationDate?: string;
+  quotationValueAoa?: number; paymentTerms?: string; incoterms?: string;
+  orderNumber?: string; orderDate?: string; orderStatus: string;
+}>) {
+  const lines = [
+    CSV_HEADERS.join(","),
+    ...rows.map((r) => [
+      r.client, r.description, r.jobId, r.requestId ?? "",
+      r.quotationNumber ?? "", r.quotationDate ?? "",
+      r.quotationValueAoa ?? "", r.paymentTerms ?? "",
+      r.incoterms ?? "", r.orderNumber ?? "", r.orderDate ?? "",
+      r.orderStatus === "emitido" ? "Emitido" : "Pendente",
+    ].map(csvCell).join(",")),
+  ];
+  const csv = "\uFEFF" + lines.join("\n");
+  const href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = `pipeline-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 function PipelinePage() {
@@ -85,11 +123,16 @@ function PipelinePage() {
               Registo unificado de Trabalhos, Pedidos de Cotação, Cotações e Notas de Encomenda.
             </p>
           </div>
-          <Button asChild>
-            <Link to="/pipeline/novo">
-              <Plus className="w-4 h-4 mr-2" /> Novo Registo
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => exportCsv(rows)}>
+              <Download className="w-4 h-4 mr-2" /> Exportar CSV
+            </Button>
+            <Button asChild>
+              <Link to="/pipeline/novo">
+                <Plus className="w-4 h-4 mr-2" /> Novo Registo
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
